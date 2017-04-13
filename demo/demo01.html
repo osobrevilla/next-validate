@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Directives mode</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" type="text/css" href="/demo/demo.css">
+  <script>
+    document.write('<script src="../fv.js"><\/script>');
+
+  </script>
+</head>
+
+<body>
+  <form class="frm" id="form">
+       <div class="submit">
+      <input class="button-primary" type="submit" value="Enviar">
+    </div>
+    <h3>Datos Personales</h3>
+    <div class="row">
+      <div class="form-group four columns">
+        <label class="data-label">Nombres</label>
+        <input type="text" class="u-full-width" data-validate-required>
+      </div>
+      <div class="form-group four columns">
+        <label class="data-label">Apellidos</label>
+        <input type="text" class="u-full-width" data-validate-required>
+      </div>
+      <div class="form-group four columns">
+        <label class="data-label">DNI</label>
+        <input type="text"  class="u-full-width" data-validate-integer="holdKeys:true" data-validate-required  data-validate-range="min:1, max:5" data-validate-maxlength="3">
+      </div>
+    </div>
+    <strong>Fecha de nacimiento</strong>
+    <div class="row combodate-validate">
+      <div class="form-group four columns">
+        <select class="day u-full-width" data-validate-require>
+            <option value="">Día</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
+            <option value="23">23</option>
+            <option value="24">24</option>
+            <option value="25">25</option>
+            <option value="26">26</option>
+            <option value="27">27</option>
+            <option value="28">28</option>
+            <option value="29">29</option>
+            <option value="30">30</option>
+            <option value="31">31</option>
+          </select>
+      </div>
+      <div class="form-group four columns">
+        <select class="month u-full-width" data-validate-require>
+            <option value="">Mes</option>
+            <option value="0">Enero</option>
+            <option value="1">Febrero</option>
+            <option value="2">Marzo</option>
+            <option value="3">Abril</option>
+            <option value="4">Mayo</option>
+            <option value="5">Junio</option>
+            <option value="6">Julio</option>
+            <option value="7">Agosto</option>
+            <option value="8">Setiembre</option>
+            <option value="9">Octubre</option>
+            <option value="10">Noviembre</option>
+            <option value="11">Diciembre</option>
+          </select>
+      </div>
+      <div class="form-group four columns">
+        <select class="year u-full-width" data-validate-require>
+            <option value="">Año</option>
+            <option value="2015">2015</option>
+            <option value="2014">2014</option>
+            <option value="2013">2013</option>
+            <option value="2012">2012</option>
+            <option value="2011">2011</option>
+            <option value="2010">2010</option>
+            <option value="2009">2009</option>
+            <option value="2008">2008</option>
+            <option value="2007">2007</option>
+            <option value="2006">2006</option>
+            <option value="2005">2005</option>
+            <option value="2004">2004</option>
+            <option value="2003">2003</option>
+            <option value="2002">2002</option>
+            <option value="2001">2001</option>
+            <option value="2000">2000</option>
+            <option value="1999">1999</option>
+            <option value="1998">1998</option>
+            <option value="1997">1997</option>
+            <option value="1996">1996</option>
+            <option value="1995">1995</option>
+            <option value="1994">1994</option>
+            <option value="1993">1993</option>
+            <option value="1992">1992</option>
+            <option value="1991">1991</option>
+            <option value="1990">1990</option>
+            <option value="1989">1989</option>
+            <option value="1988">1988</option>
+            <option value="1987">1987</option>
+            <option value="1986">1986</option>
+            <option value="1985">1985</option>
+            <option value="1984">1984</option>
+            <option value="1983">1983</option>
+            <option value="1982">1982</option>
+            <option value="1981">1981</option>
+            <option value="1980">1980</option>
+            <option value="1979">1979</option>
+            <option value="1978">1978</option>
+            <option value="1977">1977</option>
+            <option value="1976">1976</option>
+            <option value="1975">1975</option>
+            <option value="1974">1974</option>
+            <option value="1973">1973</option>
+            <option value="1972">1972</option>
+            <option value="1971">1971</option>
+            <option value="1970">1970</option>
+          </select>
+      </div>
+      <div class="edad-error" style="display: none;">Debes ser mayor de edad</div>
+    </div>
+    <div class="form-group">
+      <label class="data-label">Correo eletrónico</label>
+      <input class="data-input" type="text" data-validate-email>
+    </div>
+    <h3>Ubicación</h3>
+    <div class="ui-ubigeo row">
+      <div class="form-group four columns">
+        <label class="data-label">Departamento</label>
+        <select class="cbodepartamento u-full-width" data-validate-require>
+            <option value="" >Departamento</option>
+            <option value="2534">Amazonas</option>
+            <option value="2625">Ancash</option>
+            <option value="2812">Apurimac</option>
+            <option value="2900">Arequipa</option>
+            <option value="3020">Ayacucho</option>
+            <option value="3143">Cajamarca</option>
+            <option value="3292">Cusco</option>
+            <option value="3414">Huancavelica</option>
+            <option value="3518">Huanuco</option>
+            <option value="3606">Ica</option>
+            <option value="3655">Junin</option>
+            <option value="3788">La Libertad</option>
+            <option value="3884">Lambayeque</option>
+            <option value="3926">Lima</option>
+            <option value="4108">Loreto</option>
+            <option value="4165">Madre de Dios</option>
+            <option value="4180">Moquegua</option>
+            <option value="4204">Pasco</option>
+            <option value="4236">Piura</option>
+            <option value="4309">Puno</option>
+            <option value="4431">San Martin</option>
+            <option value="4519">Tacna</option>
+            <option value="4551">Tumbes</option>
+            <option value="4567">Ucayali</option>
+          </select>
+      </div>
+      <div class="form-group four columns">
+        <label class="data-label">Provincia</label>
+        <select class="cboprovincia u-full-width">
+            <option value="">Seleccionar</option>
+          </select>
+      </div>
+      <div class="form-group four columns">
+        <label class="data-label">Distrito</label>
+        <select class="cbodistrito u-full-width">
+            <option value="">Seleccionar</option>
+          </select>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="data-label">Dirección</label>
+      <input class="u-full-width" type="text" data-validate-min-size="4" data-validate-max-size="50">
+    </div>
+    <div class="form-group row">
+      <label class="data-label">Código de cartilla</label>
+      <input class="data-input" name="colegio-p" type="text" data-validate-alphanumeric>
+    </div>
+    <div class="form-group row">
+      <label class="data-label">¿Qué deseo harías realidad si ganaras el sorteo?</label>
+      <textarea class="u-full-width" rows="4" cols="50" data-validate-required></textarea>
+    </div>
+    <div class="form-group terminos-condiciones">
+      <label for="c2"><input id="c2" type="checkbox" name="c2" data-validate-require="message:Debe aceptar los términos y condiciones"> Acepto los <a href="#">términos y condiciones</a></label>
+    </div>
+
+  </form>
+  <script>
+    // FormValidate.addRule({
+    //   name: 'between',
+    //   test: function(value, $el, args){
+    //     if (value && typeof value != 'undefined')
+    //       return parseInt(value) >= parseInt(args[0]) && parseInt(value) <= parseInt(args[1]);
+    //     return true;
+    //   },
+    //   message: 'solo se permite numeros de {{0}} al {{1}}'
+    // })
+
+    // FormValidate.addRule({
+    //   name: 'dni',
+    //   pattern: /^\d+$/,
+    //   test: function (value, $el, args) {
+    //     if (value && typeof value !== 'undefined')
+    //       return !isNaN(value) && String(value).length === 8;
+    //     return true;
+    //   },
+    //   message: 'El DNI debe tener 8 dígitos'
+    // })
+
+
+    new NextValidate(document.forms[0]);
+
+  </script>
+  <style>
+    body {
+      margin: 1em
+    }
+
+    .has-error .form-control-feedback {
+      color: red;
+      font-style: italic
+    }
+
+    .has-error input,
+    .has-error select {
+      border-color: red
+    }
+
+  </style>
+</body>
+
+</html>

@@ -1,0 +1,6 @@
+.ui-form {
+  position: relative;
+}
+.ui-form .ui-message-error {
+  right: 0;
+}
