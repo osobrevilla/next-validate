@@ -1,25 +1,23 @@
 const webpack = require('webpack');
 const path = require('path');
-const {
-  CheckerPlugin
-} = require('awesome-typescript-loader')
 
 
 module.exports = {
   entry: {
-    nextvalidate: './nextvalidate.ts'
+    NextValidate: './nextvalidate.js'
   },
   output: {
     path: path.join(__dirname, 'demo'),
     filename: '[name].bundle.js'
   },
+
   module: {
-    loaders: [{
-      test: /\.tsx?$/,
-      loader: 'awesome-typescript-loader?useBabel=true'
+    rules: [{
+      test: /\.js$/,
+      exclude: /(node_modules|bower_components)/,
+      use: {
+        loader: 'babel-loader'
+      }
     }]
-  },
-  resolve: {
-    extensions: [".tsx", ".ts", ".js"]
   }
 };

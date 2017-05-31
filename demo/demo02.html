@@ -6,9 +6,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="stylesheet" type="text/css" href="/demo/demo.css">
+  <link rel="stylesheet" type="text/css" href="demo.css">
   <script>
-    document.write('<script src="../fv.js"><\/script>');
+    document.write('<script src="nextvalidate.bundle.js"><\/script>'); 
 
   </script>
 </head>
@@ -207,15 +207,16 @@
     </div>
   </form>
   <script>
-    // FormValidate.addRule({
-    //   name: 'between',
-    //   test: function(value, $el, args){
-    //     if (value && typeof value != 'undefined')
-    //       return parseInt(value) >= parseInt(args[0]) && parseInt(value) <= parseInt(args[1]);
-    //     return true;
-    //   },
-    //   message: 'solo se permite numeros de {{0}} al {{1}}'
-    // })
+    
+    
+    Validates.addRule('between', {
+      test: function(value, el, args){
+        if (value && typeof value != 'undefined')
+          return parseInt(value) >= parseInt(args[0]) && parseInt(value) <= parseInt(args[1]);
+        return true;
+      },
+      message: 'solo se permite numeros de {{min}} al {{max}}'
+    });
 
     // FormValidate.addRule({
     //   name: 'dni',

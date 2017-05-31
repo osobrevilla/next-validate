@@ -8,42 +8,42 @@ const GLOBAL_DEFAULT_RULE_OPTIONS = {
 };
 
 
-export interface ValidatesArgs {
-  value: string | number;
-}
+// export interface ValidatesArgs {
+//   value: string | number;
+// }
 
-export interface ValidateRuleOptions {
-  test: Function;
-  pattern?: RegExp,
-  message: string;
-}
+// export interface ValidateRuleOptions {
+//   test: Function;
+//   pattern?: RegExp,
+//   message: string;
+// }
 
-export interface TestObject {
-  test: Function;
-  name: string,
-  args: any,
-  localOptions: ValidateRuleOptions
-  runtimeOptions: ValidateRuleOptions
-}
+// export interface TestObject {
+//   test: Function;
+//   name: string,
+//   args: any,
+//   localOptions: ValidateRuleOptions
+//   runtimeOptions: ValidateRuleOptions
+// }
 
-export interface ValidateRuleOptionsDefault {
-  message: string
-}
+// export interface ValidateRuleOptionsDefault {
+//   message: string
+// }
 
 
 /** Class representing a Validates. */
 
-export class Validates {
+export default class Validates {
   /**
    * Add new validation rule
    */
-  static addRule(name: string, options: ValidateRuleOptions) {
+  static addRule(name, options) {
     if (options && typeof name === 'string') {
 
-      const localOptions: ValidateRuleOptions = Object.assign({}, GLOBAL_DEFAULT_RULE_OPTIONS, options);
+      const localOptions = Object.assign({}, GLOBAL_DEFAULT_RULE_OPTIONS, options);
       RULES[name] = localOptions;
-      Validates[name] = (param: any) => {
-        let args: any = {};
+      Validates[name] = (param) => {
+        let args = {};
         let type = typeof param;
 
         if (type === 'string' || type === 'number' || type === 'boolean') {
@@ -52,8 +52,8 @@ export class Validates {
           args = param;
         }
 
-        const testObject: TestObject = {
-          test: function (value: string | number, el: HTMLFormElement) {
+        const testObject = {
+          test: function (value, el) {
             return this.runtimeOptions.test(value, el, args);
           },
           runtimeOptions: Object.assign({}, options, localOptions, args),
@@ -74,7 +74,7 @@ export class Validates {
    * @param {string} name - the name of rule
    * @param {string} message - the message template of the rule
    */
-  static setRuleMessage(name: string, message: string) {
+  static setRuleMessage(name, message) {
     if (typeof name === 'string' && typeof message === 'string') {
       if (RULES[name])
         RULES[name].message = message;
@@ -94,18 +94,18 @@ export class Validates {
  * @type {Object}
  */
 const REQUIRED_RULE = {
-  test: function (value) {
-    return value !== '' && value !== undefined;
+  test: function (value, el) {
+    return String(value).trim() != ''
   },
   message: 'El campo es requerido'
 };
 
 Validates.addRule('email', {
-  pattern: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
+  
   test: function (value, el) {
     value = value.trim();
     if (value)
-      return this.pattern.test(value);
+      return  /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(value);
   },
   message: 'El email no es válido'
 }).addRule('require', REQUIRED_RULE).addRule('required', REQUIRED_RULE).addRule('alpha', {
@@ -131,11 +131,11 @@ Validates.addRule('email', {
   },
   message: 'Solo números'
 }).addRule('date', {
-  pattern: /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/,
+  _pattern: /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/,
   test: function (value, el) {
     value = value.trim();
     if (value)
-      return this.pattern.test(value);
+      return this._pattern.test(value);
   },
   message: 'Fecha mal formada, por favor usar día/mes/año'
 }).addRule('compare', {
@@ -150,7 +150,7 @@ Validates.addRule('email', {
     el.maxLength = max;
     return value.length <= max;
   },
-  message: 'Máximo {{0}} caracteres'
+  message: 'Máximo {{value}} caracteres'
 }).addRule('size', {
   test: function (value, el, args) {
     let size = args.value;
@@ -159,7 +159,7 @@ Validates.addRule('email', {
       return value.length == size;
     }
   },
-  message: 'Deben ser {{0}} caracteres'
+  message: 'Deben ser {{value}} caracteres'
 }).addRule('minlength', {
   test: function (value, el, args) {
     value = value.trim();
@@ -167,7 +167,7 @@ Validates.addRule('email', {
       return value.length >= args.minlength
     return true
   },
-  message: 'mínimo {{0}} caracteres'
+  message: 'mínimo {{value}} caracteres'
 }).addRule('alphanumeric', {
   pattern: /^\w+$/,
   test: function (value, el) {
@@ -185,6 +185,8 @@ Validates.addRule('email', {
   },
   message: 'Solo números entre {{min}} y {{max}}'
 });
+
+global.Validates = Validates;
 
 // Validates.addRule('dni', {
 //   pattern: /\d+/,

@@ -2,7 +2,8 @@
  * Developers: Oscar Sobrevilla with colaboration of Waldo Saccaco and Luis Moreno
  */
 
-import { Validates, ValidateRuleOptions, TestObject, ValidatesArgs } from './validates';
+import  Validates  from './validates';
+
 
 
 /**
@@ -58,7 +59,7 @@ const events = {
   offAll: function (el, event = null, capture = false) {
     let key = el.dataset.fvevt,
       store = this.stores[key];
-    console.log(store);
+    //console.log(store);
     if (!store)
       return;
     if (event) {
@@ -155,8 +156,8 @@ const _onKeyPress = (e, fieldObject, instance) => {
   }
 };
 
-const _getArgsFromDirective = (param: any) => {
-  let args: any = {};
+const _getArgsFromDirective = (param) => {
+  let args = {};
   const type = typeof param;
   const isBoolean = /^(true|false)$/;
 
@@ -176,7 +177,7 @@ const _getArgsFromDirective = (param: any) => {
 };
 
 const _createTestObject = (validationFunctions) => {
-  const testObjects: Array<TestObject> = [];
+  const testObjects = [];
   for (let obj of validationFunctions) {
     if (typeof obj === 'function')
       obj = obj();
@@ -193,29 +194,26 @@ const _getFormFields = (form) => [].slice.call(form.querySelectorAll(_getDataSel
 
 const _getDataSelectors = () => Object.keys(Validates.getRules()).map(frag => `[data-validate-${frag}]`);
 
-const _getFieldValue = (el) => ['checkbox', 'radio'].indexOf(el.type) >= 0 ? (el.checked ? el.value : '') : el.value;
+const _getFieldValue = (el) => ['checkbox', 'radio'].includes(el.type) ? el.checked ? el.value : '' : el.value;
 
 
-interface NextValidateOptions {
-  validates: Array<any>;
-  errorMessageTemplate: string;
-}
+// interface NextValidateOptions {
+//   validates: Array<any>;
+//   errorMessageTemplate: string;
+// }
 
 
-interface FieldObject {
-  field: HTMLFormElement;
-  testObjects: Array<TestObject>;
-}
+// interface FieldObject {
+//   field: HTMLFormElement;
+//   testObjects: Array<TestObject>;
+// }
 
 
 
 /** Class representing a Form Validate. */
 
-export class NextValidate {
+export default class NextValidate {
 
-  options: NextValidateOptions
-  form: HTMLFormElement
-  validates: Array<any>
 
   /**
    * Create a NextValidate instance
@@ -223,14 +221,14 @@ export class NextValidate {
    * @param {NextValidateOptions} [options]
    */
 
-  constructor(form: HTMLFormElement, options: NextValidateOptions) {
+  constructor(form, options = {}) {
     this.options = Object.assign({
       errorMessageTemplate: '',
     }, options);
 
     this.form = form;
     this.form.classList.add('next-validate');
-    this.validates = [];
+    this._validates_ = [];
 
     if (options.validates) {
       this.compileFunctions(options.validates);
@@ -281,11 +279,11 @@ export class NextValidate {
   }
 
   compileFunction(field, ruleFunctions) {
-    const validate:FieldObject = {
+    const validate = {
       field: field,
       testObjects: _createTestObject(ruleFunctions)
     };
-    this.validates.push(validate);
+    this._validates_.push(validate);
     this._bindEvents(validate);
   }
 
@@ -299,7 +297,7 @@ export class NextValidate {
     const field = fieldObject.field;
     const eventName = type; //+ '.validate';
     const that = this;
-    let result: boolean = true;
+    let result = true;
     switch (type) {
       case 'keypress':
         events.on(field, eventName, event => {
@@ -326,7 +324,7 @@ export class NextValidate {
   }
 
   _unbindEvents() {
-    this.validates.forEach(validate => events.offAll(validate.field));
+    this._validates_.forEach(validate => events.offAll(validate.field));
   }
 
   _bindEvents(validate) {
@@ -372,7 +370,7 @@ export class NextValidate {
    * @param {HTMLFormElement} field - Node element contain a single input/select/textarea element
    * @description Remove the message element inserted after validation
    */
-  removeMessage(field:HTMLFormElement) {
+  removeMessage(field) {
     let formGroup = this.getFormGroup(field),
       feedbacks = formGroup.querySelectorAll('.form-control-feedback')
     formGroup.classList.remove('has-error', 'has-success');
@@ -389,26 +387,26 @@ export class NextValidate {
    * @property {string} data.value - The value of [data-validate-key="value"]
    * @property {string} data.key - The name of rule (key) [data-validate-[key]]
    */
-  displayMessage(field:HTMLFormElement, message:string, args:ValidatesArgs, fadeOutTime?:number) {
+  displayMessage(field, message, args, fadeOutTime) {
     this._putMessage(this.getFormGroup(field), this._buildMessage(message, args));
     if (fadeOutTime)
       setTimeout(() => this.removeMessage(field), fadeOutTime);
   }
 
-  validateControl(fieldObject:FieldObject) {
+  validateControl(fieldObject) {
     let isValid = true,
       field = fieldObject.field;
 
     if (field.offsetParent === null) // if input is invisible, skip and return true.
-      return true;
+      return isValid;
 
     if (field.hasAttribute('disabled'))
-      return true;
+      return isValid;
 
 
     for (let testObject of fieldObject.testObjects) {
 
-      isValid = !!testObject.test(_getFieldValue(field), field);
+      isValid *= !!testObject.test(_getFieldValue(field), field);
 
       if (typeof isValid === 'undefined') {
         this.removeMessage(field);
@@ -431,8 +429,10 @@ export class NextValidate {
    * @returns {boolean}
    */
   isValid() {
+    //console.log(this._validates_);
     let isValid = true;
-    [].forEach.call(this.validates, validate => (isValid = isValid && this.validateControl(validate)))
+
+    [].forEach.call(this._validates_, validate => (isValid = isValid * this.validateControl(validate)))
     return isValid;
   }
 
@@ -455,6 +455,10 @@ export class NextValidate {
   static setMessageErrorTemplate(template) {
     GLOBAL_MESSAGE_ERROR_TEMPLATE = template;
   }
+
 }
+
+global.NextValidate = NextValidate;
+
 
 //replace(/äëïöü|ÄËÏÖÜ|áéíóú|ÁÉÍÓÚ|ÂÊÎÔÛ|âêîôû|àèìòù|ÀÈÌÒÙ|ãẽĩõũỹ|ÃẼĨÕŨỸ/g, '').split('').join(' ') : '';
