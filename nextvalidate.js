@@ -2,7 +2,7 @@
  * Developers: Oscar Sobrevilla with colaboration of Waldo Saccaco and Luis Moreno
  */
 
-import  Validates  from './validates';
+import Validates from './validates';
 
 
 
@@ -78,7 +78,7 @@ const utils = {
       i;
     do {
       i = matches.length;
-      while (--i >= 0 && matches.item(i) !== el) { };
+      while (--i >= 0 && matches.item(i) !== el) {};
     } while ((i < 0) && (el = el.parentElement));
     return el;
   },
@@ -160,7 +160,6 @@ const _getArgsFromDirective = (param) => {
   let args = {};
   const type = typeof param;
   const isBoolean = /^(true|false)$/;
-
   if (type === 'string') {
     if (isNaN(param)) {
       param.split(',')
@@ -459,6 +458,7 @@ export default class NextValidate {
 }
 
 global.NextValidate = NextValidate;
+NextValidate.Validates = NextValidate;
 
 
 //replace(/äëïöü|ÄËÏÖÜ|áéíóú|ÁÉÍÓÚ|ÂÊÎÔÛ|âêîôû|àèìòù|ÀÈÌÒÙ|ãẽĩõũỹ|ÃẼĨÕŨỸ/g, '').split('').join(' ') : '';

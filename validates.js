@@ -7,35 +7,31 @@ const GLOBAL_DEFAULT_RULE_OPTIONS = {
   message: 'Valor no valido'
 };
 
+/**
+ * Rule options.
+ * @typedef {Object} ValidateRuleOptions
+ * @property {Function} test - Validate function return true or false
+ * @property {RegExp} pattern - Test regexp (optional)
+ * @property {string} message - The message displayed when validation fails
+ */
 
-// export interface ValidatesArgs {
-//   value: string | number;
-// }
+/**
+ * TestObject
+ * @typedef TestObject 
+ * @property {Function} test
+ * @property {string } name
+ * @property {Object|Array} args
+ * @property {ValidateRuleOptions} localOptions
+ * @property {ValidateRuleOptions} runtimeOptions
+ *
+ */
 
-// export interface ValidateRuleOptions {
-//   test: Function;
-//   pattern?: RegExp,
-//   message: string;
-// }
-
-// export interface TestObject {
-//   test: Function;
-//   name: string,
-//   args: any,
-//   localOptions: ValidateRuleOptions
-//   runtimeOptions: ValidateRuleOptions
-// }
-
-// export interface ValidateRuleOptionsDefault {
-//   message: string
-// }
-
-
-/** Class representing a Validates. */
 
 export default class Validates {
   /**
    * Add new validation rule
+   * @param {string} name  - rule name
+   * @param {ValidateRuleOptions} options - rule options
    */
   static addRule(name, options) {
     if (options && typeof name === 'string') {
@@ -90,6 +86,14 @@ export default class Validates {
   }
 }
 
+/** Email Rule
+  *  @name email
+  *  @memberof Validates
+  *  @static 
+  *  @function email
+  *  @param {object} someParameter Description
+  */
+
 /**
  * @type {Object}
  */
@@ -100,12 +104,16 @@ const REQUIRED_RULE = {
   message: 'El campo es requerido'
 };
 
+
+
+
+
 Validates.addRule('email', {
-  
+  _pattern: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
   test: function (value, el) {
     value = value.trim();
     if (value)
-      return  /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(value);
+      return this._pattern.test(value);
   },
   message: 'El email no es válido'
 }).addRule('require', REQUIRED_RULE).addRule('required', REQUIRED_RULE).addRule('alpha', {
@@ -187,11 +195,3 @@ Validates.addRule('email', {
 });
 
 global.Validates = Validates;
-
-// Validates.addRule('dni', {
-//   pattern: /\d+/,
-//   test(value, el, args) {
-//     return this.pattern.test(value);
-//   },
-//   message: ""
-// });

@@ -158,30 +158,24 @@ module.exports = g;
     message: 'Valor no valido'
   };
 
-  // export interface ValidatesArgs {
-  //   value: string | number;
-  // }
+  /**
+   * Rule options.
+   * @typedef {Object} ValidateRuleOptions
+   * @property {Function} test - Validate function return true or false
+   * @property {RegExp=} pattern - Test regexp
+   * @property {string} message - The message displayed when validation fails
+   */
 
-  // export interface ValidateRuleOptions {
-  //   test: Function;
-  //   pattern?: RegExp,
-  //   message: string;
-  // }
-
-  // export interface TestObject {
-  //   test: Function;
-  //   name: string,
-  //   args: any,
-  //   localOptions: ValidateRuleOptions
-  //   runtimeOptions: ValidateRuleOptions
-  // }
-
-  // export interface ValidateRuleOptionsDefault {
-  //   message: string
-  // }
-
-
-  /** Class representing a Validates. */
+  /**
+   * TestObject
+   * @typedef TestObject 
+   * @property {Function} test
+   * @property {string } name
+   * @property {Object|Array} args
+   * @property {ValidateRuleOptions} localOptions
+   * @property {ValidateRuleOptions} runtimeOptions
+   *
+   */
 
   var Validates = function () {
     function Validates() {
@@ -257,11 +251,10 @@ module.exports = g;
   };
 
   Validates.addRule('email', {
-
+    _pattern: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
     test: function test(value, el) {
       value = value.trim();
-      if (value) return (/[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(value)
-      );
+      if (value) return this._pattern.test(value);
     },
     message: 'El email no es válido'
   }).addRule('require', REQUIRED_RULE).addRule('required', REQUIRED_RULE).addRule('alpha', {
@@ -337,15 +330,6 @@ module.exports = g;
   });
 
   global.Validates = Validates;
-
-  // Validates.addRule('dni', {
-  //   pattern: /\d+/,
-  //   test(value, el, args) {
-  //     return this.pattern.test(value);
-  //   },
-  //   message: ""
-  // });
-
   module.exports = exports['default'];
 });
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
@@ -592,7 +576,6 @@ module.exports = g;
     var args = {};
     var type = typeof param === 'undefined' ? 'undefined' : _typeof(param);
     var isBoolean = /^(true|false)$/;
-
     if (type === 'string') {
       if (isNaN(param)) {
         param.split(',').map(function (keyValue) {
@@ -971,6 +954,7 @@ module.exports = g;
 
 
   global.NextValidate = NextValidate;
+  NextValidate.Validates = NextValidate;
 
   //replace(/äëïöü|ÄËÏÖÜ|áéíóú|ÁÉÍÓÚ|ÂÊÎÔÛ|âêîôû|àèìòù|ÀÈÌÒÙ|ãẽĩõũỹ|ÃẼĨÕŨỸ/g, '').split('').join(' ') : '';
 
