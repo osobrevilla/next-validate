@@ -7,11 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link rel="stylesheet" type="text/css" href="demo.css">
-  <script>
-
-    document.write('<script src="nextvalidate.bundle.js"><\/script>'); 
-
-  </script>
+  
+  <script src="nextvalidate.js"></script>
 </head>
 
 <body>
@@ -23,7 +20,7 @@
     <div class="row">
       <div class="form-group four columns">
         <label class="data-label">Nombres</label>
-        <input type="text" class="u-full-width" data-validate-required>
+        <input type="text" class="u-full-width" data-validate-alphanumeric data-validate-required>
       </div>
       <div class="form-group four columns">
         <label class="data-label">Apellidos</label>
@@ -31,7 +28,7 @@
       </div>
       <div class="form-group four columns">
         <label class="data-label">DNI</label>
-        <input type="text"  class="u-full-width" data-validate-integer="holdKeys:true" data-validate-required  data-validate-range="min:1, max:5" data-validate-maxlength="3">
+        <input type="text"  class="u-full-width"  data-validate-required data-validate-integer data-validate-range="min:1, max:2000" data-validate-maxlength="3">
       </div>
     </div>
     <strong>Fecha de nacimiento</strong>
@@ -203,6 +200,18 @@
       <label class="data-label">¿Qué deseo harías realidad si ganaras el sorteo?</label>
       <textarea class="u-full-width" rows="4" cols="50" data-validate-required></textarea>
     </div>
+
+    <div class="form-group row">
+      <label class="data-label">Ingrese la opacidad de sus lentes</label>
+      <input class="data-input" name="opacity" type="text" data-validate-require data-validate-decimal="strict:true">
+    </div>
+
+
+    <div class="form-group row">
+      <label class="data-label">Tarjeta de crédito</label>
+      <input class="data-input" name="opacity" type="text" data-validate-require data-validate-visa>
+    </div>
+
     <div class="form-group terminos-condiciones">
       <label for="c2"><input id="c2" type="checkbox" name="c2" data-validate-require="message:Debe aceptar los términos y condiciones"> Acepto los <a href="#">términos y condiciones</a></label>
     </div>
@@ -229,7 +238,6 @@
     //   },
     //   message: 'El DNI debe tener 8 dígitos'
     // })
-
 
     new NextValidate(document.forms[0]);
 

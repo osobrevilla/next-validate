@@ -31,7 +31,7 @@ const VALIDATE_ATTRIBUTE_REGEXP = /^data-validate-(.+)/;
  */
 const VALIDATE_EVENT_MAP = {
   'select': ['blur', 'change'],
-  'input textarea': ['blur', 'keyup', 'keypress']
+  'input textarea': ['blur', 'input'] //keyup
 };
 
 const events = {
@@ -124,36 +124,44 @@ const _parseValidatesAttributes = (field) => {
   //field.dataset[VALIDATA_DATA_KEY] = JSON.stringify(validates);
 };
 
-const _onKeyPress = (e, fieldObject, instance) => {
+const _onKey = (e, fieldObject, instance) => {
 
   var field = e.target,
     code = e.which || e.keyCode || e.charCode,
     canContinue = true,
-    keyExceptions = [8, 9],
     keyChar = String.fromCharCode(code),
     failedTestObj = null;
 
-  if (keyExceptions.indexOf(code) >= 0)
-    return;
 
   canContinue = fieldObject.testObjects
-    .filter(testObj => !!testObj.localOptions.pattern)
+    .filter(testObj => testObj.localOptions.hasOwnProperty('blackList'))
     .reduce((prevValue, testObj) => {
-      let result = testObj.localOptions.pattern.test(keyChar) * prevValue;
-      if (!result && failedTestObj === null) {
-        failedTestObj = testObj;
-      }
-      return result;
-    }, true)
+      let blackListReg = new RegExp(`[^${testObj.localOptions.blackList}]`, 'g');
+      let position = field.selectionStart;
+      console.log(blackListReg, field.value);
+      field.value = field.value.replace(blackListReg, '');
+      field.selectionEnd = position;
+      return !blackListReg.test(keyChar) * prevValue
+    }, true);
 
-  if (!canContinue) {
-    e.preventDefault();
-    if (e.target.value)
-      instance.displayMessage(field, failedTestObj.runtimeOptions.message, fieldObject.args);
-    else
-      instance.removeMessage(field);
-    return false;
+
+  if (canContinue == false) {
+    e.preventDefault();  
+    // return false;
   }
+
+  instance.validateControl(fieldObject);
+  
+
+  // if (!canContinue) {
+  //   e.preventDefault();
+  //   if (e.target.value) {
+  //     console.log('error');
+  //     instance.displayMessage(field, _getMessage(failedTestObj, field), failedTestObj.args);
+  //   } else
+  //     instance.removeMessage(field);
+  //   return false;
+  // }
 };
 
 const _getArgsFromDirective = (param) => {
@@ -195,6 +203,10 @@ const _getDataSelectors = () => Object.keys(Validates.getRules()).map(frag => `[
 
 const _getFieldValue = (el) => ['checkbox', 'radio'].includes(el.type) ? el.checked ? el.value : '' : el.value;
 
+const _getMessage = (fieldObject, field) => {
+  let _message = fieldObject.runtimeOptions.message;
+  return typeof _message === 'function' ? _message.call(fieldObject.runtimeOptions, fieldObject.args, field) : _message;
+};
 
 // interface NextValidateOptions {
 //   validates: Array<any>;
@@ -298,19 +310,15 @@ export default class NextValidate {
     const that = this;
     let result = true;
     switch (type) {
-      case 'keypress':
+      case 'input':
         events.on(field, eventName, event => {
-          let _result = _onKeyPress(event, fieldObject, that);
-          if (typeof _result === 'boolean')
-            result = result && _result;
+          _onKey(event, fieldObject, that)
         }, false);
         break;
       case 'blur':
-      case 'change':
       case 'keyup':
         events.on(field, eventName, event => {
-          if (result)
-            this.validateControl(fieldObject)
+          this.validateControl(fieldObject)
         }, false);
         break;
       case 'click':
@@ -402,7 +410,6 @@ export default class NextValidate {
     if (field.hasAttribute('disabled'))
       return isValid;
 
-
     for (let testObject of fieldObject.testObjects) {
 
       isValid *= !!testObject.test(_getFieldValue(field), field);
@@ -415,7 +422,7 @@ export default class NextValidate {
       if (isValid) {
         this.removeMessage(field);
       } else {
-        this.displayMessage(field, testObject.runtimeOptions.message, testObject.args);
+        this.displayMessage(field, _getMessage(testObject, field), testObject.args);
         break;
       }
     }
@@ -457,8 +464,11 @@ export default class NextValidate {
 
 }
 
+
+global.Validates = Validates;
 global.NextValidate = NextValidate;
 NextValidate.Validates = NextValidate;
+
 
 
 //replace(/äëïöü|ÄËÏÖÜ|áéíóú|ÁÉÍÓÚ|ÂÊÎÔÛ|âêîôû|àèìòù|ÀÈÌÒÙ|ãẽĩõũỹ|ÃẼĨÕŨỸ/g, '').split('').join(' ') : '';

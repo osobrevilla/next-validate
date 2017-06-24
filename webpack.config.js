@@ -8,7 +8,9 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, 'demo'),
-    filename: '[name].bundle.js'
+    filename: 'nextvalidate.js',
+    library: 'NextValidate',
+    libraryTarget: 'umd'
   },
 
   module: {
