@@ -2,10 +2,6 @@
  * Developers: Oscar Sobrevilla with colaboration of Waldo Saccaco and Luis Moreno
  */
 
-import Validates from './validates';
-
-
-
 /**
  * @type {string}
  */
@@ -109,7 +105,33 @@ const utils = {
  */
 
 
-const _parseValidatesAttributes = (field) => {
+/**
+ * Rule options.
+ * @typedef {Object} ValidateRuleOptions
+ * @property {Function} test - Validate function return true or false
+ * @property {RegExp} pattern - Test regexp (optional)
+ * @property {string} message - The message displayed when validation fails
+ */
+
+
+/**
+ * TestObject
+ * @typedef TestObject 
+ * @property {Function} test
+ * @property {string } name
+ * @property {Object|Array} args
+ * @property {ValidateRuleOptions} localOptions
+ * @property {ValidateRuleOptions} runtimeOptions
+ *
+ */
+
+const RULES = {};
+
+const GLOBAL_DEFAULT_RULE_OPTIONS = {
+  message: 'Valor no valido'
+};
+
+const _parseValidationAttributes = (field) => {
   var validates = {},
     hasAttr = false;
   for (let attr of field.attributes) {
@@ -132,26 +154,24 @@ const _onKey = (e, fieldObject, instance) => {
     keyChar = String.fromCharCode(code),
     failedTestObj = null;
 
-
   canContinue = fieldObject.testObjects
-    .filter(testObj => testObj.localOptions.hasOwnProperty('blackList'))
+    .filter(testObj => testObj.localOptions.hasOwnProperty('whiteList'))
     .reduce((prevValue, testObj) => {
-      let blackListReg = new RegExp(`[^${testObj.localOptions.blackList}]`, 'g');
+      let regExp = new RegExp(`[^${testObj.localOptions.whiteList}]`, 'g');
       let position = field.selectionStart;
-      console.log(blackListReg, field.value);
-      field.value = field.value.replace(blackListReg, '');
+      field.value = field.value.replace(regExp, '');
       field.selectionEnd = position;
-      return !blackListReg.test(keyChar) * prevValue
+      return !regExp.test(keyChar) * prevValue
     }, true);
 
 
   if (canContinue == false) {
-    e.preventDefault();  
+    e.preventDefault();
     // return false;
   }
 
   instance.validateControl(fieldObject);
-  
+
 
   // if (!canContinue) {
   //   e.preventDefault();
@@ -199,32 +219,20 @@ const _createTestObject = (validationFunctions) => {
 
 const _getFormFields = (form) => [].slice.call(form.querySelectorAll(_getDataSelectors().join(', ')));
 
-const _getDataSelectors = () => Object.keys(Validates.getRules()).map(frag => `[data-validate-${frag}]`);
+const _getDataSelectors = () => Object.keys(Validators.getRules()).map(frag => `[data-validate-${frag}]`);
 
 const _getFieldValue = (el) => ['checkbox', 'radio'].includes(el.type) ? el.checked ? el.value : '' : el.value;
 
 const _getMessage = (fieldObject, field) => {
-  let _message = fieldObject.runtimeOptions.message;
+  let _message = Object.assign({}, fieldObject.runtimeOptions, fieldObject.args).message;
+  // console.log("row", fieldObject.runtimeOptions, fieldObject.args);
   return typeof _message === 'function' ? _message.call(fieldObject.runtimeOptions, fieldObject.args, field) : _message;
 };
-
-// interface NextValidateOptions {
-//   validates: Array<any>;
-//   errorMessageTemplate: string;
-// }
-
-
-// interface FieldObject {
-//   field: HTMLFormElement;
-//   testObjects: Array<TestObject>;
-// }
-
 
 
 /** Class representing a Form Validate. */
 
 export default class NextValidate {
-
 
   /**
    * Create a NextValidate instance
@@ -239,7 +247,7 @@ export default class NextValidate {
 
     this.form = form;
     this.form.classList.add('next-validate');
-    this._validates_ = [];
+    this._validators_ = [];
 
     if (options.validates) {
       this.compileFunctions(options.validates);
@@ -262,16 +270,16 @@ export default class NextValidate {
     _getFormFields(this.form)
       .map(field => ({
         field: field,
-        attrs: _parseValidatesAttributes(field)
+        attrs: _parseValidationAttributes(field)
       }))
       .forEach(directives => {
         let validatesFns = [];
         for (let name in directives.attrs) {
-          if (Validates[name]) {
+          if (Validators[name]) {
             if (directives.attrs[name]) {
-              validatesFns.push(Validates[name.toLowerCase()](_getArgsFromDirective(directives.attrs[name])));
+              validatesFns.push(Validators[name.toLowerCase()](_getArgsFromDirective(directives.attrs[name])));
             } else {
-              validatesFns.push(Validates[name.toLowerCase()]);
+              validatesFns.push(Validators[name.toLowerCase()]);
             }
           }
         }
@@ -290,16 +298,16 @@ export default class NextValidate {
   }
 
   compileFunction(field, ruleFunctions) {
-    const validate = {
+    const validator = {
       field: field,
       testObjects: _createTestObject(ruleFunctions)
     };
-    this._validates_.push(validate);
-    this._bindEvents(validate);
+    this._validators_.push(validator);
+    this._bindEvents(validator);
   }
 
   getFormGroup(field) {
-    var formGroup = utils.closest(field, '.form-group');
+    var formGroup = utils.closest(field, '.form-group, .nextvalidate-form-group');
     return formGroup ? formGroup : field.parentElement;
   }
 
@@ -317,6 +325,7 @@ export default class NextValidate {
         break;
       case 'blur':
       case 'keyup':
+      case 'change':
         events.on(field, eventName, event => {
           this.validateControl(fieldObject)
         }, false);
@@ -331,7 +340,7 @@ export default class NextValidate {
   }
 
   _unbindEvents() {
-    this._validates_.forEach(validate => events.offAll(validate.field));
+    this._validators_.forEach(validate => events.offAll(validate.field));
   }
 
   _bindEvents(validate) {
@@ -412,18 +421,19 @@ export default class NextValidate {
 
     for (let testObject of fieldObject.testObjects) {
 
-      isValid *= !!testObject.test(_getFieldValue(field), field);
+      let result = testObject.test(_getFieldValue(field), field);
 
-      if (typeof isValid === 'undefined') {
+      if (typeof result === 'undefined') {
         this.removeMessage(field);
         continue;
-      }
-
-      if (isValid) {
-        this.removeMessage(field);
       } else {
-        this.displayMessage(field, _getMessage(testObject, field), testObject.args);
-        break;
+        isValid *= !!result;
+        if (isValid) {
+          this.removeMessage(field);
+        } else {
+          this.displayMessage(field, _getMessage(testObject, field), testObject.args);
+          break;
+        }
       }
     }
 
@@ -435,10 +445,10 @@ export default class NextValidate {
    * @returns {boolean}
    */
   isValid() {
-    //console.log(this._validates_);
+    //console.log(this._validators_);
     let isValid = true;
 
-    [].forEach.call(this._validates_, validate => (isValid = isValid * this.validateControl(validate)))
+    [].forEach.call(this._validators_, validate => (isValid = isValid * this.validateControl(validate)))
     return isValid;
   }
 
@@ -465,9 +475,233 @@ export default class NextValidate {
 }
 
 
-global.Validates = Validates;
+export class Validators {
+  /**
+   * Add new validation rule
+   * @param {string} name  - rule name
+   * @param {ValidateRuleOptions} options - rule options
+   */
+  static add(name, options) {
+    if (typeof name === 'string' || Array.isArray(name) && options) {
+
+      const localOptions = Object.assign({}, GLOBAL_DEFAULT_RULE_OPTIONS, options);
+
+      [].concat(name).forEach((name) => {
+
+        RULES[name] = localOptions;
+
+        Validators[name] = (param) => {
+          let args = {},
+            type = typeof param;
+
+          if (type === 'string' || type === 'number' || type === 'boolean') {
+            args.value = isNaN(param) ? param : Number(param);
+          } else if (type === 'object' && !Array.isArray(param) && param) {
+            args = param;
+          }
+
+          const testObject = {
+            test: function (value, el) {
+              return this.runtimeOptions.test(value, el, args);
+            },
+            runtimeOptions: Object.assign({}, options, localOptions),
+            localOptions: localOptions,
+            args: args,
+            name: name
+          };
+
+          return testObject;
+        };
+      });
+
+      return Validators;
+    }
+  }
+
+  /**
+   * Set the message property to specific rule.
+   * @param {string} name - the name of rule
+   * @param {string} message - the message template of the rule
+   */
+  static setRuleMessage(name, message) {
+    if (typeof name === 'string' && typeof message === 'string') {
+      if (RULES[name])
+        RULES[name].message = message;
+    }
+  }
+
+  static getValidateRule(name) {
+    return RULES[name];
+  }
+
+  static getRules() {
+    return RULES;
+  }
+}
+
+/** Email Rule
+ *  @name email
+ *  @memberof Validators
+ *  @static 
+ *  @function email
+ *  @param {object} someParameter Description
+ */
+
+/**
+ * @type {Object}
+ */
+const REQUIRED_RULE = {
+  test: function (value, el) {
+    return String(value).trim() != ''
+  },
+  message: 'El campo es requerido'
+};
+
+
+Validators.add('email', {
+    pattern: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
+    test(value, el) {
+      value = value.trim();
+      if (value)
+        return this.pattern.test(value);
+    },
+    message: 'El email no es válido'
+  }).add('require', REQUIRED_RULE).add('required', REQUIRED_RULE).add('alpha', {
+    pattern: /^[a-zA-Z\s\']+$/,
+    test(value, el) {
+      return this.pattern.test(value);
+    },
+    message: 'Solo letras'
+  }).add('integer', {
+    whiteList: '\\d-',
+    pattern: /^\-?\d+$/,
+    test(value, el) {
+      value = String(value).trim();
+      if (value.length)
+        return this.pattern.test(value);
+    },
+    message: 'Solo números enteros'
+  })
+  .add('dni', {
+    whiteList: '\\d',
+    pattern: /^\d+$/,
+    test(value, el) {
+      value = String(value).trim();
+      if (value)
+        return this.pattern.test(value) && value.length === 8;
+    },
+    message: 'DNI no válido'
+  })
+  .add(['float', 'decimal'], {
+    whiteList: '\\d|.|-',
+    test(value, el, args) {
+      value = value.trim();
+      if (value)
+        return args.strict ? /^-{0,1}?\d*\.{0,1}\d+$/.test(value) : /^-{0,1}?\d*\.{0,1}?\d+?$/.test(value);
+    },
+    message(args) {
+      return 'Solo números' + (args.strict ? ' con punto decimal' : '');
+    }
+  }).add('date', {
+    pattern: /^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/,
+    test(value, el) {
+      value = value.trim();
+      if (value)
+        return this.pattern.test(value);
+    },
+    message: 'Fecha mal formada, por favor usar día/mes/año'
+  }).add('compare', {
+    test(value, el, args) {
+      var el = typeof args.value === 'object' ? args.value : document.querySelector(args.value);
+      return el.value == value;
+    },
+    message: 'No coinciden los datos'
+  }).add('maxlength', {
+    test(value, el, args) {
+      let max = args.value;
+      el.maxLength = max;
+      return value.length <= max;
+    },
+    message: 'Máximo {{value}} caracteres'
+  }).add('size', {
+    test(value, el, args) {
+      let size = args.value;
+      if (value) {
+        el.maxLength = size;
+        return value.length == size;
+      }
+    },
+    message: 'Deben ser {{value}} caracteres'
+  }).add('minlength', {
+    test(value, el, args) {
+      value = value.trim();
+      if (value)
+        return value.length >= args.value
+    },
+    message: function (args, field) {
+      return `mínimo ${args.value} caracteres <span style="float:right">${field.value.trim().length} de ${args.value}</span>`;
+
+    }
+  }).add('alphanumeric', {
+    pattern: /^\w+$/,
+    test(value, el) {
+      value = value.trim();
+      if (value)
+        return this.pattern.test(value);
+    },
+    message: 'Solo números y letras'
+  }).add('range', {
+    pattern: /^-?\d+$/,
+    test(value, el, args) {
+      value = Number(String(value).trim());
+      if (value)
+        return value >= args.min && value <= args.max;
+    },
+    message: 'Solo números entre {{min}} y {{max}}'
+  }).add('visa', {
+    whiteList: /[\d]/,
+    total: 16,
+    test(value, el, args) {
+      value = String(value).trim();
+      if (value) {
+        return value.replace(/\D/g, '').length === this.total;
+      }
+    },
+    message(args, field) {
+      let value = String(field.value).trim();
+      value = value.replace(/\D/g, '');
+      return `se requieren ${this.total - value.length} dígitos`
+    }
+  }).add('remote', {
+    async: true,
+    test(value, el, args, next) {
+
+      var myRequest = new Request(args.url, {
+        method: args.method || 'GET',
+        body: JSON.stringify(Object.assign({}, {
+          value: value
+        }, args.body, {}))
+      });
+
+      fetch(myRequest)
+        .then(function (response) {
+          if (response.status == 200) return response.json();
+          else throw new Error('Something went wrong on api server!');
+        })
+        .then(function (response) {
+          console.debug(response);
+          // ...
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    }
+  });
+
+
+global.Validators = Validators;
 global.NextValidate = NextValidate;
-NextValidate.Validates = NextValidate;
+NextValidate.Validators = NextValidate;
 
 
 
