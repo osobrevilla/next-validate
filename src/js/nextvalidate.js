@@ -2,6 +2,8 @@
  * Developers: Oscar Sobrevilla with colaboration of Waldo Saccaco and Luis Moreno
  */
 
+ import '../styles/_next-validate.css'
+
 /**
  * @type {string}
  */
@@ -232,7 +234,7 @@ const _getMessage = (fieldObject, field) => {
 
 /** Class representing a Form Validate. */
 
-export default class NextValidate {
+class NextValidate {
 
   /**
    * Create a NextValidate instance
@@ -475,7 +477,7 @@ export default class NextValidate {
 }
 
 
-export class Validators {
+class Validators {
   /**
    * Add new validation rule
    * @param {string} name  - rule name
@@ -702,6 +704,9 @@ Validators.add('email', {
 global.Validators = Validators;
 global.NextValidate = NextValidate;
 NextValidate.Validators = NextValidate;
+
+export default NextValidate
+
 
 
 
