@@ -1,7 +1,7 @@
-const webpack = require('webpack');
-const path = require('path');
+const webpack = require('webpack')
+const path = require('path')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
-const CleanWebpackPlugin = require('clean-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 
 const config = {
   entry: {
@@ -32,32 +32,31 @@ const config = {
   devServer: {
     contentBase: path.resolve(__dirname, 'dist'),
     hot: true,
-    open: true
+    open: true,
+    openPage: '/demo01.html'
   }
-};
+}
 
-
-if (process.env.NODE_ENV === 'development'){
+if (process.env.NODE_ENV === 'development') {
   config.devtool = 'inline-source-map'
   config.plugins = config.plugins.concat([
     new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new HTMLWebpackPlugin({
+      filename: 'demo01.html',
       template: './src/html/demo01.html',
       inject: 'head'
     }),
     new HTMLWebpackPlugin({
+      filename: 'demo02.html',
       template: './src/html/demo02.html',
       inject: 'head'
     })
   ])
 }
 
-
 if (process.env.NODE_ENV === 'production') {
   config.devtool = 'source-map'
 }
-
-
 
 module.exports = config

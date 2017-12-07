@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --progress",
     "build:production": "cross-env NODE_ENV=production webpack -p --progress",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard ./src/js/**"
   },
   "repository": {
     "type": "git",

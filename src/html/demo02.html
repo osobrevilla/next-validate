@@ -207,10 +207,10 @@
     Validators.add('between', {
       test: function(value, el, args){
         if (value && typeof value != 'undefined')
-          return parseInt(value) >= parseInt(args[0]) && parseInt(value) <= parseInt(args[1]);
+          return parseInt(value) >= parseInt(args.min) && parseInt(value) <= parseInt(args.max);
         return true;
       },
-      message: 'solo se permite numeros de {{min}} al {{max}}'
+      message: 'Rango permitido de {{min}} al {{max}}'
     });
 
 
@@ -223,10 +223,10 @@
         'documento': [ 
             Validators.required, 
             Validators.integer, 
-            Validators.between({ min: 1, max: 10}),
+            Validators.between({ min: 1, max: 500}),
             Validators.size({ value: 3 })
         ],
-        'name': [ Validators.required],
+        'name': [ Validators.required, Validators.alpha],
         'lastname': [ Validators.required, Validators.maxlength({ value: 12 })],
         'password': [ Validators.compare('#password2')]
       }
