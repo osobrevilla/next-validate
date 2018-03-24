@@ -2,7 +2,7 @@
  * Developers: Oscar Sobrevilla with colaboration of Waldo Saccaco and Luis Moreno
  */
 
- /* global Request fetch */
+ /* global Request fetch NodeList RadioNodeList*/
 
 import '../styles/_next-validate.css'
 
@@ -171,7 +171,7 @@ const _onKey = (e, fieldObject, instance) => {
     // return false;
   }
 
-  instance.validateControl(fieldObject)
+  instance.validateField(fieldObject)
 
   // if (!canContinue) {
   //   e.preventDefault();
@@ -243,10 +243,11 @@ class NextValidate {
     this.options = Object.assign({
       errorMessageTemplate: ''
     }, options)
-
+    this.VALIDATIONS_MAP = {}
     this.form = form
     this.form.classList.add('next-validate')
     this._validators_ = []
+    this._validateEvtHandler = this._validateEvtHandler.bind(this)
 
     if (options.validates) {
       this.compileFunctions(options.validates)
@@ -295,6 +296,7 @@ class NextValidate {
         this.compileFunction(field, validatesFns)
       }
     }
+    this._bindEvents()
   }
 
   compileFunction (field, ruleFunctions) {
@@ -302,8 +304,16 @@ class NextValidate {
       field: field,
       testObjects: _createTestObject(ruleFunctions)
     }
+
+    let fields = this.isList(field) ? [].slice.call(field) : [field]
+    let key = 'vmapid_' + ++NextValidate._elId
+    console.log(key)
+    fields.forEach(field => {
+      field.dataset.vmapid = key
+      this.setValidationObject(key, validator)
+    })
+
     this._validators_.push(validator)
-    this._bindEvents(validator)
   }
 
   getFormGroup (field) {
@@ -311,50 +321,66 @@ class NextValidate {
     return formGroup || field.parentElement
   }
 
-  _bindEvent (fieldObject, type) {
-    const field = fieldObject.field
-    const eventName = type // + '.validate';
-    const that = this
-    // let result = true
-    switch (type) {
-      case 'input':
-        events.on(field, eventName, event => {
-          _onKey(event, fieldObject, that)
-        }, false)
-        break
-      case 'blur':
-      case 'keyup':
-      case 'change':
-        events.on(field, eventName, event => {
-          this.validateControl(fieldObject)
-        }, false)
-        break
-      case 'click':
-        events.on(field, eventName, event => {
-          this.validateControl(fieldObject)
-        }, false)
-        break
-      default:
-    }
-  }
-
   _unbindEvents () {
     this._validators_.forEach(validate => events.offAll(validate.field))
   }
 
-  _bindEvents (validate) {
-    let field = validate.field
+  _bindEvents () {
+    ['focusin', 'focusout', 'keyup', 'click']
+      .forEach((eventName) => this.form.addEventListener(eventName, this._validateEvtHandler, false))
+  }
+
+  validateElement (element) {
+    return this.isList(element.field) ? this.validateFieldList(element) : this.validateField(element)
+  }
+
+  isList (field) {
+    return RadioNodeList.prototype.isPrototypeOf(field)
+  }
+
+  _validateEvtHandler ({type: eventType, target}) {
+    let field = target
+    let key = field.dataset.vmapid
     let tagName = field.tagName.toLowerCase()
-    for (var i in VALIDATE_EVENT_MAP) {
-      if (i.indexOf(tagName) >= 0) {
-        for (var j in VALIDATE_EVENT_MAP[i]) {
-          this._bindEvent(validate, VALIDATE_EVENT_MAP[i][j])
-        }
+    let types01 = ['text', 'password', 'file', 'number', 'search',
+      'tel', 'url', 'email', 'datetime', 'date', 'month', 'week', 'time',
+      'datetime-local', 'range', 'color', 'contenteditable', 'button',
+      'checkbox', 'radio'
+    ]
+
+    let fieldObject = this.getValidationObject(key)
+
+    if (eventType === 'click') {
+      if ((field.type === 'checkbox' || field.type === 'radio')) {
+        this.validateFieldList(fieldObject)
       }
+    } else {
+
     }
-    if (tagName === 'input' && ['checkbox', 'radio'].indexOf(field.type) >= 0) {
-      this._bindEvent(validate, 'click')
-    }
+
+    // if ((tagName === 'input' || tagName === 'select' || tagName === 'textarea') && type !== 'click') {
+    //   if (types01.indexOf(field.type.toLowerCase()) >= 0) {
+    //     if (fieldObject) {
+    //       this.validateField(fieldObject)
+    //     }
+    //   }
+    // } else if (type === 'click' && ((tagName === 'select' || tagName === 'option') || (tagName === 'input' && (field.type === 'checkbox' || field.type === 'radio')))) {
+    //   if ((field.type === 'checkbox' || field.type === 'radio')) {
+    //     if (fieldObject) {
+    //       this.validateFieldList(fieldObject)
+    //     }
+    //   } else {
+    //     this.validateField(fieldObject)
+    //   }
+    // }
+  }
+
+  getValidationObject (key) {
+    return this.VALIDATIONS_MAP[key]
+  }
+
+  setValidationObject (key, validator) {
+    this.VALIDATIONS_MAP[key] = validator
   }
 
   _buildMessageBlock (message) {
@@ -408,16 +434,44 @@ class NextValidate {
     }
   }
 
-  validateControl (fieldObject) {
+  validateFieldList (fieldObject) {
     let isValid = true
     let field = fieldObject.field
+    let type = field[0].type
+    // let markers = Array.from(field).filter(i => i.checked)
+    let testObjects = fieldObject.testObjects.filter(t => ['required', 'between'].indexOf(t.name) !== -1)
+    var testObj
+    switch (type) {
+      case 'radio':
+      case 'checkbox':
+        for (testObj of testObjects) {
+          isValid *= testObj.test('', field, testObj.args)
+          if (!isValid) break
+        }
+        break
+    }
 
+    if (isValid) {
+      this.removeMessage(field[0])
+      return true
+    } else {
+      this.displayMessage(field[0], _getMessage(testObj, field), testObj.args)
+      return false
+    }
+  }
+
+  validateField (fieldObject) {
+    let field = fieldObject.field[0]
     // if input is invisible, skip and return true.
-    if (field.offsetParent === null || field.hasAttribute('disabled')) return isValid
+    if (field.offsetParent === null || field.hasAttribute('disabled')) return true
 
+    return this.doTest(field, fieldObject)
+  }
+
+  doTest (field, fieldObject) {
+    let isValid = true
     for (let testObject of fieldObject.testObjects) {
       let result = testObject.test(_getFieldValue(field), field)
-
       if (typeof result === 'undefined') {
         this.removeMessage(field)
         continue
@@ -431,7 +485,6 @@ class NextValidate {
         }
       }
     }
-
     return isValid
   }
 
@@ -443,7 +496,7 @@ class NextValidate {
     // console.log(this._validators_);
     let isValid = true;
 
-    [].forEach.call(this._validators_, validate => (isValid = isValid * this.validateControl(validate)))
+    [].forEach.call(this._validators_, validate => (isValid = isValid * this.validateElement(validate)))
     return isValid
   }
 
@@ -467,7 +520,7 @@ class NextValidate {
     GLOBAL_MESSAGE_ERROR_TEMPLATE = template
   }
 }
-
+NextValidate._elId = -1
 class Validators {
   /**
    * Add new validation rule
@@ -543,13 +596,44 @@ class Validators {
  * @type {Object}
  */
 const REQUIRED_RULE = {
-  test: function (value, el) {
+  test: function (value, el, args) {
+    if (NextValidate.prototype.isList(el)) {
+      let inputs = el[0].form[el[0].name]
+      let markers = Array.from(inputs).filter(i => i.checked)
+      args = Object.assign({}, {min: 1, max: null}, args)
+      let len = markers.length
+      return len > 0
+    }
     return String(value).trim() !== ''
   },
   message: 'El campo es requerido'
 }
 
-Validators.add('email', {
+Validators.add('between', {
+  test: function (value, el, args) {
+    if (NextValidate.prototype.isList(el)) {
+      let inputs = el[0].form[el[0].name]
+      let type = el[0].type
+      let markers = Array.from(inputs).filter(i => i.checked)
+      args = Object.assign({}, { min: null, max: null }, args)
+      let len = markers.length
+      if (type === 'radio') {
+        return len > 0
+      } else if (type === 'checkbox') {
+        let isValid = true
+        if (args.min === null && args.max === null) return true
+        if (args.min !== null) isValid *= Boolean(len >= args.min)
+        if (args.max !== null) isValid *= Boolean(len <= args.max)
+        return isValid
+      }
+    }
+    if (value && typeof value !== 'undefined') {
+      return parseInt(value) >= parseInt(args.min) && parseInt(value) <= parseInt(args.max)
+    }
+    return true
+  },
+  message: 'Rango permitido de {{min}} al {{max}}'
+}).add('email', {
   pattern: /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
   test (value, el) {
     value = value.trim()

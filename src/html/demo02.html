@@ -11,6 +11,38 @@
 <body>
   <form class="frm" id="form">
     <h3>Datos Personales</h3>
+  <div class="row">
+    <ol class="form-group">
+      <li>
+        <input type="radio" name="myradio" value="" />
+      </li>
+      <li>
+        <input type="radio" name="myradio" value="1" />
+      </li>
+      <li>
+        <input type="radio" name="myradio" value="2" />
+      </li>
+      <li>
+        <input type="radio" name="myradio" value="3" />
+      </li>
+    </ol>
+  </div>
+  <div class="row">
+    <ol class="form-group">
+      <li>
+        <input type="checkbox" name="mycheckbox" value="" />
+      </li>
+      <li>
+        <input type="checkbox" name="mycheckbox" value="1" />
+      </li>
+      <li>
+        <input type="checkbox" name="mycheckbox" value="2" />
+      </li>
+      <li>
+        <input type="checkbox" name="mycheckbox" value="3" />
+      </li>
+    </ol>
+  </div>
     <div class="row">
       <div class="form-group four columns">
         <label class="data-label">Nombres</label>
@@ -204,35 +236,27 @@
   <script>
     
     
-    Validators.add('between', {
-      test: function(value, el, args){
-        if (value && typeof value != 'undefined')
-          return parseInt(value) >= parseInt(args.min) && parseInt(value) <= parseInt(args.max);
-        return true;
-      },
-      message: 'Rango permitido de {{min}} al {{max}}'
-    });
+    
 
 
     new NextValidate(document.forms[0], {
       validates: {
-        'c2': [ Validators.required ],
-        'departament': [Validators.required],
-        'email': [ Validators.required, Validators.email],
-        'date-day': [Validators.required],
-        'documento': [ 
-            Validators.required, 
-            Validators.integer, 
-            Validators.between({ min: 1, max: 500}),
-            Validators.size({ value: 3 })
-        ],
-        'name': [ Validators.required, Validators.alpha],
-        'lastname': [ Validators.required, Validators.maxlength({ value: 12 })],
-        'password': [ Validators.compare('#password2')]
+        'myradio': [ Validators.required ],
+        'mycheckbox': [Validators.between({min: 2, max: 3}) ]
+        // 'departament': [Validators.required],
+        // 'email': [ Validators.required, Validators.email],
+        // 'date-day': [Validators.required],
+        // 'documento': [ 
+        //     Validators.required, 
+        //     Validators.integer, 
+        //     Validators.between({ min: 1, max: 500}),
+        //     Validators.size({ value: 3 })
+        // ],
+        // 'name': [ Validators.required, Validators.alpha],
+        // 'lastname': [ Validators.required, Validators.maxlength({ value: 12 })],
+        // 'password': [ Validators.compare('#password2')]
       }
     });
-
-
   </script>
   <style>
     body {
